@@ -24,11 +24,11 @@ namespace modul2.RepositoriData
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-            new Claim("Id", murid.id_murid.ToString()),
-            new Claim(ClaimTypes.Email, murid.email),
-            new Claim(ClaimTypes.Name, murid.nama),
-            new Claim(ClaimTypes.Role, murid.role) // ✅ Tambahkan Role ke token
-        }),
+                    new Claim("Id", murid.id_murid.ToString()),
+                    new Claim(ClaimTypes.Email, murid.email),
+                    new Claim(ClaimTypes.Name, murid.nama),
+                    new Claim(ClaimTypes.Role, murid.nama_peran) // ✅ Tambahkan Role ke token
+                }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

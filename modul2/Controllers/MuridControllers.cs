@@ -6,24 +6,25 @@ using System;
 namespace Modul2.Controllers
 {
     [ApiController]  // ✅ Tambahkan atribut ApiController
-    [Route("api/murid")]  // ✅ Set route dasar untuk API
+    [Route("api/[controller]")]  // ✅ Set route dasar untuk API
     public class MuridController : ControllerBase  // ✅ Ubah ke ControllerBase karena ini API
     {
-        private readonly MuridContext _context;
+        private readonly string _constr;
 
         // ✅ Gunakan Dependency Injection untuk mendapatkan connection string
         public MuridController(IConfiguration configuration)
         {
-            string constr = configuration.GetConnectionString("WebApiDatabase");
-            _context = new MuridContext(constr);
+            string _constr = configuration.GetConnectionString("koneksi");
+
         }
 
         // ✅ Ambil semua data murid
         [HttpGet]
         [Authorize(Roles = "admin, user")]
-        public ActionResult<IEnumerable<Murid>> GetAllMurid()
+        public ActionResult GetAllMurid()
         {
-            List<Murid> listMurid = _context.ListMurid();
+            MuridContext context = new MuridContext(this._constr);
+            List<Murid> listMurid = context.ListMurid();
             return Ok(listMurid);
         }
 
@@ -36,7 +37,8 @@ namespace Modul2.Controllers
             {
                 return BadRequest("Data murid tidak boleh kosong.");
             }
-            _context.RegisterMurid(murid);
+            MuridContext context = new MuridContext(this._constr);
+            context.AddMurid(murid);
             return Ok(new { message = "Data murid berhasil ditambahkan" });
         }
 
@@ -51,7 +53,8 @@ namespace Modul2.Controllers
             }
 
             murid.id_murid = id;
-            _context.UpdateMurid(murid);
+            MuridContext context = new MuridContext(this._constr);
+            context.UpdateMurid(murid);
             return Ok(new { message = "Data murid berhasil diperbarui" });
         }
 
@@ -60,7 +63,8 @@ namespace Modul2.Controllers
         [Authorize(Roles = "admin")]
         public IActionResult DeleteMurid(int id)
         {
-            _context.DeleteMurid(id);
+            MuridContext context = new MuridContext(this._constr);
+            context.DeleteMurid(id);
             return Ok(new { message = "Data murid berhasil dihapus" });
         } 
     }

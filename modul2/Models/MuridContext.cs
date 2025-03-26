@@ -8,18 +8,17 @@ namespace modul2.Models
     public class MuridContext
     {
         private string __constr;
-        public string __ErrorMsg { get; private set; }
+        public string __ErrorMsg;
 
-        public MuridContext(string constr)
+        public MuridContext(string pObs)
         {
-            __constr = constr;
+            __constr = pObs;
         }
 
-        // Register Murid
-        public bool RegisterMurid(Murid murid)
+        // create
+        public void AddMurid(Murid murid)
         {
-            string query = @"INSERT INTO users.murid (nama, alamat, email, password) 
-                             VALUES (@name, @alamat, @email, @password);";
+            string query = @"INSERT INTO murid (nama,alamat, email) VALUES (@name, @alamat, @email);";
             SqlRepositoriData db = new SqlRepositoriData(this.__constr);
             try
             {
@@ -27,39 +26,41 @@ namespace modul2.Models
                 cmd.Parameters.AddWithValue("@nama", murid.nama);
                 cmd.Parameters.AddWithValue("@alamat", murid.alamat);
                 cmd.Parameters.AddWithValue("@email", murid.email);
-                cmd.Parameters.AddWithValue("@password", murid.password);
                 cmd.ExecuteNonQuery();
                 cmd.Dispose();
                 db.closeConnection();
-                return true;
             }
             catch (Exception ex)
             {
-                __ErrorMsg = ex.Message;
-                return false;
+                __ErrorMsg = ex.Message;    
             }
         }
 
         // Get Murid by Email
         public Murid GetMuridByEmail(string email)
+
         {
-            string query = "SELECT id_murid, nama, alamat, email, password, role FROM murid WHERE email = @Email;";
+            Murid murid = null;
+            string query = string.Format(@"SELECT * FROM murid m 
+                                         JOIN peran_murid pm ON pm.id_murid = m.id_murid 
+                                         JOIN peran p ON p.id_peran = pm.id_peran 
+                                         WHERE m.email = @email ");
             SqlRepositoriData db = new SqlRepositoriData(this.__constr);
             try
             {
                 NpgsqlCommand cmd = db.getNpgsqlCommand(query);
-                cmd.Parameters.AddWithValue("@Email", email);
+                cmd.Parameters.AddWithValue("@email", email);
                 NpgsqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
-                    return new Murid()
+                    murid = new Murid()
                     {
                         id_murid = int.Parse(reader["id_murid"].ToString()),
                         nama = reader["nama"].ToString(),
                         alamat = reader["alamat"].ToString(),
                         email = reader["email"].ToString(),
                         password = reader["password"].ToString(),
-                        role = reader["role"].ToString()
+                        nama_peran = reader["nama_peran"].ToString()
                     };
                 }
                 cmd.Dispose();
@@ -69,14 +70,14 @@ namespace modul2.Models
             {
                 __ErrorMsg = ex.Message;
             }
-            return null;
+            return murid;
         }
 
         // List All Murid
         public List<Murid> ListMurid()
         {
             List<Murid> muridList = new List<Murid>();
-            string query = "SELECT * FROM murid;";
+            string query = @"SELECT id_murid, nama, alamat, email, password  FROM murid;";
             SqlRepositoriData db = new SqlRepositoriData(this.__constr);
             try
             {
@@ -91,7 +92,7 @@ namespace modul2.Models
                         alamat = reader["alamat"].ToString(),
                         email = reader["email"].ToString(),
                         password = reader["password"].ToString(),
-                        role = reader["role"].ToString()
+                       
                     });
                 }
                 cmd.Dispose();
@@ -105,27 +106,26 @@ namespace modul2.Models
         }
 
         // Update Murid
-        public bool UpdateMurid(Murid murid)
+        public void UpdateMurid(Murid murid)
         {
-            string query = @"UPDATE murid SET name = @nama, alamat = @alamat, email = @email, role = @role WHERE id_murid = @id;";
+            string query = @"UPDATE murid SET nama = @nama, alamat = @alamat, email = @email WHERE id_murid = @id;";
             SqlRepositoriData db = new SqlRepositoriData(this.__constr);
             try
             {
                 NpgsqlCommand cmd = db.getNpgsqlCommand(query);
                 cmd.Parameters.AddWithValue("@id", murid.id_murid);
-                cmd.Parameters.AddWithValue("@name", murid.nama);
+                cmd.Parameters.AddWithValue("@nama", murid.nama);
                 cmd.Parameters.AddWithValue("@alamat", murid.alamat);
                 cmd.Parameters.AddWithValue("@email", murid.email);
-                cmd.Parameters.AddWithValue("@role", murid.role);
                 cmd.ExecuteNonQuery();
                 cmd.Dispose();
                 db.closeConnection();
-                return true;
+               
             }
             catch (Exception ex)
             {
                 __ErrorMsg = ex.Message;
-                return false;
+                
             }
         }
 
